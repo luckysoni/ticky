@@ -197,7 +197,7 @@ function SetCountdownScreen({
       <Flex alignItems="flex-end" justifyContent="space-around">
         <Flex flexDirection="column">
           <label htmlFor="hours">Hours</label>
-          <input id="hours" type="number" min="0" max="24" onChange={onChangeHours} value={hours} />
+          <input id="hours" type="number" min="0" max="23" onChange={onChangeHours} value={hours} />
           <button type="reset" className="EditActionButton">
             Reset
           </button>
@@ -209,7 +209,7 @@ function SetCountdownScreen({
             id="minutes"
             type="number"
             min="0"
-            max="60"
+            max="59"
             value={minutes}
             onChange={onChangeMinutes}
           />
@@ -224,7 +224,7 @@ function SetCountdownScreen({
             id="seconds"
             type="number"
             min="0"
-            max="60"
+            max="59"
             value={seconds}
             onChange={onChangeSeconds}
           />
