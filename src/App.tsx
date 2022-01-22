@@ -158,21 +158,15 @@ function SetCountdownScreen({
   const [seconds, setSeconds] = useState(initialSeconds)
 
   function onChangeHours(e: SyntheticEvent<HTMLInputElement>) {
-    const value = e.currentTarget.value
-    const asNum = parseInt(value.length === 0 ? '0' : value, 10)
-    setHours(isNaN(asNum) ? 0 : asNum)
+    setHours(toNum(e.currentTarget.value))
   }
 
   function onChangeMinutes(e: SyntheticEvent<HTMLInputElement>) {
-    const value = e.currentTarget.value
-    const asNum = parseInt(value.length === 0 ? '0' : value, 10)
-    setMinutes(isNaN(asNum) ? 0 : asNum)
+    setMinutes(toNum(e.currentTarget.value))
   }
 
   function onChangeSeconds(e: SyntheticEvent<HTMLInputElement>) {
-    const value = e.currentTarget.value
-    const asNum = parseInt(value.length === 0 ? '0' : value, 10)
-    setSeconds(isNaN(asNum) ? 0 : asNum)
+    setSeconds(toNum(e.currentTarget.value))
   }
 
   function onSubmit(e: SyntheticEvent<HTMLFormElement>) {
@@ -189,7 +183,8 @@ function SetCountdownScreen({
 
   function onCancelEditing() {
     const fromMs = toMs(initialHours, initialMinutes, initialSeconds)
-    setScreen({tag: 'countdown', fromMs, autoStart: true})
+    // auto-start if we think the countdown was already counting
+    setScreen({tag: 'countdown', fromMs, autoStart: fromMs !== INITIAL_MS})
   }
 
   return (
@@ -258,4 +253,9 @@ function toClock(ms: number) {
 
 function pad(num: number) {
   return num < 10 ? `0${num}` : num
+}
+
+function toNum(value: string) {
+  const num = parseInt(value.length === 0 ? '0' : value, 10)
+  return isNaN(num) ? 0 : num
 }
