@@ -59,22 +59,26 @@ function CountdownScreen({
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [currentMs, setCurrentMs] = useState(fromMs)
   const [state, setState] = useState<'paused' | 'counting'>(autoStart ? 'counting' : 'paused')
+  const [toggleState, setToggleState] = useState(false)
 
-  useHotkeys('s', onToggleState)
-  useHotkeys('r', onReset)
+  useHotkeys('s', () => setToggleState(true))
+  useHotkeys('r', () => onReset())
 
-  function onToggleState() {
-    setState(prevState => {
-      switch (prevState) {
-        case 'counting':
-          return 'paused'
-        case 'paused':
-          return currentMs > 0 ? 'counting' : 'paused'
-        default:
-          return exhaustive(prevState)
-      }
-    })
-  }
+  useEffect(() => {
+    if (toggleState) {
+      setState(prevState => {
+        switch (prevState) {
+          case 'counting':
+            return 'paused'
+          case 'paused':
+            return currentMs > 0 ? 'counting' : 'paused'
+          default:
+            return exhaustive(prevState)
+        }
+      })
+      setToggleState(false)
+    }
+  }, [currentMs, toggleState])
 
   function onEdit() {
     setScreen({tag: 'set-countdown', currentMs})
