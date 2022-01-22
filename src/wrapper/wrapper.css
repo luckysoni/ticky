@@ -5,9 +5,10 @@
 }
 
 .AppIcon {
-  margin-right: 8px;
+  margin-right: 4px;
   width: 18px;
   height: 18px;
+  color: #007a78;
 }
 
 .DragAnchor {

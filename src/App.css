@@ -21,6 +21,10 @@
   animation: blink 1s infinite;
 }
 
+.AlmostGone.isPaused {
+  animation: none;
+}
+
 .ButtonGroup button {
   background-color: #d6d2c4;
   border: 1px solid #b1aea2;
@@ -40,6 +44,10 @@
 
 .ActionButtonIcon {
   color: #003b49;
+}
+
+.ActiveActionButtonIcon {
+  color: #007a78;
 }
 
 @keyframes blink {

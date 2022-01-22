@@ -10,7 +10,7 @@ const INITIAL_MS = 20 * 1000
 
 type SetCountdownScreenT = {
   tag: 'set-countdown'
-  initialMs: number
+  currentMs: number
 }
 
 type CountdownScreenT = {
@@ -22,7 +22,7 @@ type CountdownScreenT = {
 type ScreenT = SetCountdownScreenT | CountdownScreenT
 
 export function App() {
-  const [screen, setScreen] = useState<ScreenT>({tag: 'set-countdown', initialMs: INITIAL_MS})
+  const [screen, setScreen] = useState<ScreenT>({tag: 'set-countdown', currentMs: INITIAL_MS})
 
   return (
     <Wrapper>
@@ -57,16 +57,16 @@ function CountdownScreen({
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [currentMs, setCurrentMs] = useState(fromMs)
-  const [state, setState] = useState<'paused' | 'counting' | 'finished'>(
-    autoStart ? 'counting' : 'paused'
-  )
+  const [state, setState] = useState<'paused' | 'counting'>(autoStart ? 'counting' : 'paused')
 
   function onEdit() {
-    setScreen({tag: 'set-countdown', initialMs: currentMs})
+    setScreen({tag: 'set-countdown', currentMs})
   }
 
   function onStart() {
-    setState('counting')
+    if (currentMs > 0) {
+      setState('counting')
+    }
   }
 
   function onPause() {
@@ -80,7 +80,7 @@ function CountdownScreen({
 
   useEffect(() => {
     if (currentMs === 0) {
-      setState('finished')
+      setState('paused')
     }
   }, [currentMs])
 
@@ -94,7 +94,6 @@ function CountdownScreen({
         }
         break
       case 'paused':
-      case 'finished':
         if (intervalRef.current) {
           clearInterval(intervalRef.current)
           intervalRef.current = null
@@ -107,13 +106,25 @@ function CountdownScreen({
 
   return (
     <Flex justifyContent="space-between" alignItems="center">
-      <CountDown remainingMs={currentMs} onEdit={onEdit} />
+      <CountDown remainingMs={currentMs} onEdit={onEdit} isPaused={state === 'paused'} />
       <Flex flexDirection="column" className="ButtonGroup">
         <button onClick={onStart} aria-label="Start">
-          <FontAwesomeIcon icon={faPlay} className="ActionButtonIcon" />
+          <FontAwesomeIcon
+            icon={faPlay}
+            className={addMaybeClassName(
+              'ActionButtonIcon',
+              state === 'counting' ? 'ActiveActionButtonIcon' : null
+            )}
+          />
         </button>
         <button onClick={onPause} aria-label="Pause">
-          <FontAwesomeIcon icon={faPause} className="ActionButtonIcon" />
+          <FontAwesomeIcon
+            icon={faPause}
+            className={addMaybeClassName(
+              'ActionButtonIcon',
+              state === 'paused' ? 'ActiveActionButtonIcon' : null
+            )}
+          />
         </button>
         <button onClick={onReset} aria-label="Reset">
           <FontAwesomeIcon icon={faRedo} className="ActionButtonIcon" />
@@ -123,18 +134,26 @@ function CountdownScreen({
   )
 }
 
-function CountDown({remainingMs, onEdit}: {remainingMs: number; onEdit: () => void}) {
+function CountDown({
+  remainingMs,
+  isPaused,
+  onEdit
+}: {
+  remainingMs: number
+  isPaused: boolean
+  onEdit: () => void
+}) {
   const className =
     remainingMs === 0
       ? null
       : remainingMs <= 5 * 1000
-      ? 'AlmostGone'
+      ? addMaybeClassName('AlmostGone', isPaused ? 'isPaused' : null)
       : remainingMs <= 15 * 1000
       ? 'EndingSoon'
       : null
 
   return (
-    <button className={['Timer', className].join(' ')} onClick={onEdit}>
+    <button className={addMaybeClassName('Timer', className)} onClick={onEdit}>
       {msToHumanReadable(remainingMs)}
     </button>
   )
@@ -151,7 +170,7 @@ function SetCountdownScreen({
     hours: initialHours,
     minutes: initialMinutes,
     seconds: initialSeconds
-  } = toClock(screen.initialMs)
+  } = toClock(INITIAL_MS)
 
   const [hours, setHours] = useState(initialHours)
   const [minutes, setMinutes] = useState(initialMinutes)
@@ -182,9 +201,7 @@ function SetCountdownScreen({
   }
 
   function onCancelEditing() {
-    const fromMs = toMs(initialHours, initialMinutes, initialSeconds)
-    // auto-start if we think the countdown was already counting
-    setScreen({tag: 'countdown', fromMs, autoStart: fromMs !== INITIAL_MS})
+    setScreen({tag: 'countdown', fromMs: screen.currentMs, autoStart: true})
   }
 
   return (
@@ -258,4 +275,8 @@ function pad(num: number) {
 function toNum(value: string) {
   const num = parseInt(value.length === 0 ? '0' : value, 10)
   return isNaN(num) ? 0 : num
+}
+
+function addMaybeClassName(baseClassName: string, maybeClass: string | null) {
+  return maybeClass !== null ? `${baseClassName} ${maybeClass}` : baseClassName
 }
