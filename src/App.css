@@ -1,38 +1,60 @@
-.App {
-  text-align: center;
+.Timer {
+  display: block;
+  background-color: #d6d2c4;
+  font-size: 38px;
+  border: 1px solid #d6d2c4;
+  color: #003b49;
+  margin-left: 3px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.Timer:hover {
+  border: 1px solid #003b49;
+  cursor: pointer;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.EndingSoon {
+  color: #dc582a;
+}
+
+.AlmostGone {
+  color: #d3273e;
+  animation: blink 1s infinite;
+}
+
+.ButtonGroup button {
+  background-color: #d6d2c4;
+  border: 1px solid #b1aea2;
+  margin-bottom: 2px;
+  margin-right: 3px;
+}
+
+.ButtonGroup button:hover {
+  background-color: #b1aea2;
+  border-color: #003b49;
+  cursor: pointer;
+}
+
+.ButtonGroup button:first-child {
+  margin-top: 3px;
+}
+
+.ActionButtonIcon {
+  color: #003b49;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    background-color: #d3273e;
+    color: #d6d2c4;
+  }
+  50%,
+  100% {
+    background-color: #d6d2c4;
+    color: #d3273e;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.EditActionButton {
+  margin-top: 4px;
 }

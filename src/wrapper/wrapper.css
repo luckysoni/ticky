@@ -1,0 +1,23 @@
+.App {
+  background-color: #d6d2c4;
+  width: 100vw;
+  height: 100vh;
+}
+
+.AppIcon {
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+}
+
+.DragAnchor {
+  /* make app dragable */
+  -webkit-app-region: drag;
+  background-color: #d6d2c4;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #003b49;
+  border-bottom: 1px solid #cac7b9;
+}

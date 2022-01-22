@@ -1,7 +1,8 @@
 // Module to control the application lifecycle and the native browser window.
-const {app, BrowserWindow, protocol} = require('electron')
+const {app, BrowserWindow, protocol, session} = require('electron')
 const path = require('path')
 const url = require('url')
+const os = require('os')
 
 // Create the native browser window.
 function createWindow() {
@@ -57,7 +58,16 @@ function setupLocalFilesNormalizerProxy() {
 // This method will be called when Electron has finished its initialization and
 // is ready to create the browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  if (!app.isPackaged) {
+    // Load react dev tools
+    await session.defaultSession.loadExtension(
+      path.join(
+        os.homedir(),
+        '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.22.0_0'
+      )
+    )
+  }
   createWindow()
   setupLocalFilesNormalizerProxy()
 
