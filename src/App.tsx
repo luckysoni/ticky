@@ -5,6 +5,7 @@ import {Flex} from './flex'
 import {Wrapper} from './wrapper'
 import {exhaustive} from './helpers/exhaustive'
 import './App.css'
+import {useHotkeys} from 'react-hotkeys-hook'
 
 const INITIAL_MS = 20 * 1000
 
@@ -58,6 +59,22 @@ function CountdownScreen({
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [currentMs, setCurrentMs] = useState(fromMs)
   const [state, setState] = useState<'paused' | 'counting'>(autoStart ? 'counting' : 'paused')
+
+  useHotkeys('s', onToggleState)
+  useHotkeys('r', onReset)
+
+  function onToggleState() {
+    setState(prevState => {
+      switch (prevState) {
+        case 'counting':
+          return 'paused'
+        case 'paused':
+          return currentMs > 0 ? 'counting' : 'paused'
+        default:
+          return exhaustive(prevState)
+      }
+    })
+  }
 
   function onEdit() {
     setScreen({tag: 'set-countdown', currentMs})
