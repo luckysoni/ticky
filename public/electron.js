@@ -60,11 +60,15 @@ function setupLocalFilesNormalizerProxy() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   if (!app.isPackaged) {
-    // Load react dev tools
-    await session.defaultSession.loadExtension(
-      path.join(
-        os.homedir(),
-        '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.22.0_0'
+    const extensions = [
+      // React dev tools
+      '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.22.0_0',
+      // Testing playground
+      '/.config/google-chrome/Default/Extensions/hejbmebodbijjdhflfknehhcgaklhano/1.16.0_0/'
+    ]
+    await Promise.all(
+      extensions.map(extension =>
+        session.defaultSession.loadExtension(path.join(os.homedir(), extension))
       )
     )
   }
