@@ -21,7 +21,7 @@
   animation: blink 1s infinite;
 }
 
-.AlmostGone.isPaused {
+.isPaused {
   animation: none;
 }
 

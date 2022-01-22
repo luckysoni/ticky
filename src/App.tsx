@@ -6,8 +6,8 @@ import {Wrapper} from './wrapper'
 import {exhaustive} from './helpers/exhaustive'
 import './App.css'
 import {useHotkeys} from 'react-hotkeys-hook'
-
-const INITIAL_MS = 20 * 1000
+import {INITIAL_MS} from './initial-ms'
+import {addIfClassNames, addMaybeClassName} from './helpers/classnames'
 
 type SetCountdownScreenT = {
   tag: 'set-countdown'
@@ -63,6 +63,15 @@ function CountdownScreen({
 
   useHotkeys('s', () => setToggleState(true))
   useHotkeys('r', () => onReset())
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    }
+  })
 
   useEffect(() => {
     if (toggleState) {
@@ -164,17 +173,14 @@ function CountDown({
   isPaused: boolean
   onEdit: () => void
 }) {
-  const className =
-    remainingMs === 0
-      ? null
-      : remainingMs <= 5 * 1000
-      ? addMaybeClassName('AlmostGone', isPaused ? 'isPaused' : null)
-      : remainingMs <= 15 * 1000
-      ? 'EndingSoon'
-      : null
+  const classNames = addIfClassNames([
+    [isBetweenInclusive(remainingMs, 6000, 15000), 'EndingSoon'],
+    [isBetweenInclusive(remainingMs, 1000, 5000), 'AlmostGone'],
+    [isPaused, 'isPaused']
+  ])
 
   return (
-    <button className={addMaybeClassName('Timer', className)} onClick={onEdit}>
+    <button className={addMaybeClassName('Timer', classNames)} onClick={onEdit}>
       {msToHumanReadable(remainingMs)}
     </button>
   )
@@ -298,6 +304,6 @@ function toNum(value: string) {
   return isNaN(num) ? 0 : num
 }
 
-function addMaybeClassName(baseClassName: string, maybeClass: string | null) {
-  return maybeClass !== null ? `${baseClassName} ${maybeClass}` : baseClassName
+function isBetweenInclusive(x: number, min: number, max: number) {
+  return x >= min && x <= max
 }
