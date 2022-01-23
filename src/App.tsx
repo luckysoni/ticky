@@ -31,7 +31,10 @@ export function App() {
   )
 }
 
-type ScreenReaderMessagesT = 'empty-countdown-cannot-be-started' | null
+type ScreenReaderMessagesT =
+  | {tag: 'empty-countdown-cannot-be-started'}
+  | {tag: 'new-countdown-set'; ms: number}
+  | null
 
 function CountdownScreen({
   fromMs,
@@ -56,6 +59,7 @@ function CountdownScreen({
 
   useEffect(() => {
     setCurrentMs(fromMs)
+    setScreenReaderMessageType({tag: 'new-countdown-set', ms: fromMs})
   }, [fromMs])
 
   useEffect(() => {
@@ -119,7 +123,7 @@ function CountdownScreen({
       setScreenReaderMessageType(null)
       setState('counting')
     } else {
-      setScreenReaderMessageType('empty-countdown-cannot-be-started')
+      setScreenReaderMessageType({tag: 'empty-countdown-cannot-be-started'})
     }
   }
 
@@ -179,19 +183,25 @@ function ScreenReaderMessages({
 }: {
   screenReaderMessageType: ScreenReaderMessagesT
 }) {
+  const messageStr = message(screenReaderMessageType)
+  const ariaLabelAttr = mkHtmlAttribute('aria-label', messageStr)
   return (
-    <span role="alert" className="SrOnly">
-      {message(screenReaderMessageType)}
+    <span role="alert" className="SrOnly" {...ariaLabelAttr}>
+      {messageStr}
     </span>
   )
 }
 
 function message(screenReaderMessageType: ScreenReaderMessagesT) {
-  switch (screenReaderMessageType) {
-    case null:
-      return null
+  if (screenReaderMessageType === null) {
+    return null
+  }
+
+  switch (screenReaderMessageType.tag) {
     case 'empty-countdown-cannot-be-started':
       return 'Set a countdown before it can be started'
+    case 'new-countdown-set':
+      return `Countdown set to ${toHumanHearable(screenReaderMessageType.ms, false)}`
     default:
       return exhaustive(screenReaderMessageType)
   }

@@ -105,6 +105,30 @@ describe('App', () => {
 
     jest.useRealTimers()
   })
+
+  test('alerts assistive tech when trying to start unset countdown', () => {
+    render(<App />)
+
+    userEvent.click(screen.getByRole('button', {name: /ok/i}))
+
+    getCountdownWithValue({tag: 'seconds', seconds: 0})
+
+    startCountdown()
+
+    screen.getByRole('alert', {name: /set a countdown before it can be started/i})
+  })
+
+  test('alerts assistive tech when a new countdown is set', () => {
+    render(<App />)
+
+    setCountdownValue(0, 0, 20)
+
+    userEvent.click(screen.getByRole('button', {name: /ok/i}))
+
+    getCountdownWithValue({tag: 'seconds', seconds: 20})
+
+    screen.getByRole('alert', {name: /countdown set to 20 seconds/i})
+  })
 })
 
 function setCountdownValue(numHours: number, numMinutes: number, numSeconds: number) {
