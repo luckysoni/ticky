@@ -91,7 +91,9 @@ function CountdownScreen({
 
   function onReset() {
     setCurrentMs(fromMs)
-    setState('counting')
+    if (fromMs > 0) {
+      setState('counting')
+    }
   }
 
   useEffect(() => {
@@ -273,15 +275,15 @@ function msToHumanReadable(ms: number) {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
 
-function toClock(ms: number) {
+export function toClock(ms: number) {
   const seconds = Math.floor((ms / 1000) % 60)
   const minutes = Math.floor((ms / (1000 * 60)) % 60)
   const hours = Math.floor((ms / (1000 * 60 * 60)) % 24)
   return {hours, minutes, seconds}
 }
 
-function pad(num: number) {
-  return num < 10 ? `0${num}` : num
+export function pad(num: number) {
+  return num < 10 ? `0${num}` : num.toString()
 }
 
 function toNum(value: string) {

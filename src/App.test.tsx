@@ -1,9 +1,10 @@
-import {act, render, screen, Screen} from '@testing-library/react'
+import {act, render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {App} from './App'
+import {App, pad, toClock} from './App'
+import {exhaustive} from './helpers/exhaustive'
 
 describe('App', () => {
-  test('renders set countdown screen', () => {
+  test('renders set countdown screen on start', () => {
     render(<App />)
 
     expect(screen.getByRole('spinbutton', {name: /hours/i})).toHaveValue(0)
@@ -18,11 +19,13 @@ describe('App', () => {
   test('allows setting the countdown value', () => {
     render(<App />)
 
-    setCountdownValue(screen, '2', '33', '52')
+    const [hours, minutes, seconds] = [2, 33, 52]
+
+    setCountdownValue(hours, minutes, seconds)
 
     userEvent.click(screen.getByRole('button', {name: /ok/i}))
 
-    screen.getByRole('button', {name: /02:33:52/i})
+    getCountdownWithValue({tag: 'clock', hours, minutes, seconds})
   })
 
   test('allows starting the countdown', () => {
@@ -30,19 +33,19 @@ describe('App', () => {
 
     render(<App />)
 
-    setCountdownValue(screen, '6', '09', '34')
+    const [hours, minutes, seconds] = [6, 9, 34]
+
+    setCountdownValue(hours, minutes, seconds)
 
     userEvent.click(screen.getByRole('button', {name: /ok/i}))
 
-    screen.getByRole('button', {name: /06:09:34/i})
+    getCountdownWithValue({tag: 'clock', hours, minutes, seconds})
 
-    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
+    startCountdown()
 
-    act(() => {
-      jest.advanceTimersByTime(1000)
-    })
+    advanceTimeBySeconds(1)
 
-    screen.getByRole('button', {name: /06:09:33/i})
+    getCountdownWithValue({tag: 'clock', hours, minutes, seconds: seconds - 1})
 
     jest.useRealTimers()
   })
@@ -52,25 +55,23 @@ describe('App', () => {
 
     render(<App />)
 
-    setCountdownValue(screen, '0', '0', '5')
+    const seconds = 5
+
+    setCountdownValue(0, 0, seconds)
 
     userEvent.click(screen.getByRole('button', {name: /ok/i}))
 
-    screen.getByRole('button', {name: /00:00:05/i})
+    getCountdownWithValue({tag: 'seconds', seconds})
 
-    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
+    startCountdown()
 
-    act(() => {
-      jest.advanceTimersByTime(5000)
-    })
+    advanceTimeBySeconds(5)
 
-    screen.getByRole('button', {name: /00:00:00/i})
+    getCountdownWithValue({tag: 'seconds', seconds: 0})
 
-    act(() => {
-      jest.advanceTimersByTime(5000)
-    })
+    advanceTimeBySeconds(5)
 
-    screen.getByRole('button', {name: /00:00:00/i})
+    getCountdownWithValue({tag: 'seconds', seconds: 0})
 
     jest.useRealTimers()
   })
@@ -80,41 +81,74 @@ describe('App', () => {
 
     render(<App />)
 
-    const ORIGINAL_COUNTDOWN_SECONDS = '9'
+    const seconds = 9
 
-    setCountdownValue(screen, '0', '0', ORIGINAL_COUNTDOWN_SECONDS)
+    setCountdownValue(0, 0, seconds)
 
     userEvent.click(screen.getByRole('button', {name: /ok/i}))
 
-    screen.getByRole('button', {name: /00:00:09/i})
+    getCountdownWithValue({tag: 'seconds', seconds})
 
-    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
+    startCountdown()
 
-    act(() => {
-      jest.advanceTimersByTime(1000)
-    })
+    advanceTimeBySeconds(1)
 
-    userEvent.click(screen.getByRole('button', {name: /00:00:08/i}))
+    userEvent.click(getCountdownWithValue({tag: 'seconds', seconds: seconds - 1}))
 
     userEvent.click(screen.getByRole('button', {name: /cancel/i}))
 
-    screen.getByRole('button', {name: /00:00:08/i})
+    getCountdownWithValue({tag: 'seconds', seconds: seconds - 1})
 
-    userEvent.click(screen.getByRole('button', {name: /restart/i}))
+    restartCountdown()
 
-    screen.getByRole('button', {name: /00:00:09/i})
+    getCountdownWithValue({tag: 'seconds', seconds})
 
     jest.useRealTimers()
   })
 })
 
-function setCountdownValue(
-  screen: Screen,
-  hoursStr: string,
-  minutesStr: string,
-  secondsStr: string
+function setCountdownValue(numHours: number, numMinutes: number, numSeconds: number) {
+  userEvent.type(screen.getByRole('spinbutton', {name: /hours/i}), numHours.toString())
+  userEvent.type(screen.getByRole('spinbutton', {name: /minutes/i}), numMinutes.toString())
+  userEvent.type(screen.getByRole('spinbutton', {name: /seconds/i}), numSeconds.toString())
+}
+
+function startCountdown() {
+  userEvent.click(screen.getByRole('button', {name: /^start$/i}))
+}
+
+function restartCountdown() {
+  userEvent.click(screen.getByRole('button', {name: /restart/i}))
+}
+
+function getCountdownWithValue(
+  config:
+    | {tag: 'seconds'; seconds: number}
+    | {tag: 'ms'; ms: number}
+    | {tag: 'clock'; hours: number; minutes: number; seconds: number}
 ) {
-  userEvent.type(screen.getByRole('spinbutton', {name: /hours/i}), hoursStr)
-  userEvent.type(screen.getByRole('spinbutton', {name: /minutes/i}), minutesStr)
-  userEvent.type(screen.getByRole('spinbutton', {name: /seconds/i}), secondsStr)
+  const {hours, minutes, seconds} = (() => {
+    switch (config.tag) {
+      case 'clock': {
+        const {hours, minutes, seconds} = config
+        return {hours, minutes, seconds}
+      }
+      case 'seconds': {
+        return toClock(config.seconds * 1000)
+      }
+      case 'ms': {
+        return toClock(config.ms)
+      }
+      default:
+        return exhaustive(config)
+    }
+  })()
+
+  return screen.getByRole('button', {name: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`})
+}
+
+function advanceTimeBySeconds(seconds: number) {
+  act(() => {
+    jest.advanceTimersByTime(seconds * 1000)
+  })
 }
