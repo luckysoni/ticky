@@ -57,7 +57,7 @@ function CountdownScreen({
         intervalRef.current = null
       }
     }
-  })
+  }, [])
 
   useEffect(() => {
     if (toggleState) {
