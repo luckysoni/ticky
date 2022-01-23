@@ -2,10 +2,6 @@ import {act, render, screen, Screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {App} from './App'
 
-jest.mock('./initial-ms.ts', () => ({
-  INITIAL_MS: 0
-}))
-
 describe('App', () => {
   test('renders set countdown screen', () => {
     render(<App />)
@@ -40,7 +36,7 @@ describe('App', () => {
 
     screen.getByRole('button', {name: /06:09:34/i})
 
-    userEvent.click(screen.getByRole('button', {name: /start/i}))
+    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
 
     act(() => {
       jest.advanceTimersByTime(1000)
@@ -62,7 +58,7 @@ describe('App', () => {
 
     screen.getByRole('button', {name: /00:00:05/i})
 
-    userEvent.click(screen.getByRole('button', {name: /start/i}))
+    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
 
     act(() => {
       jest.advanceTimersByTime(5000)
@@ -79,7 +75,7 @@ describe('App', () => {
     jest.useRealTimers()
   })
 
-  test.skip('resets to the original countdown after editing is cancelled', () => {
+  test('resets to the original countdown after editing is cancelled', () => {
     jest.useFakeTimers()
 
     render(<App />)
@@ -92,7 +88,7 @@ describe('App', () => {
 
     screen.getByRole('button', {name: /00:00:09/i})
 
-    userEvent.click(screen.getByRole('button', {name: /start/i}))
+    userEvent.click(screen.getByRole('button', {name: /^start$/i}))
 
     act(() => {
       jest.advanceTimersByTime(1000)
@@ -104,9 +100,8 @@ describe('App', () => {
 
     screen.getByRole('button', {name: /00:00:08/i})
 
-    screen.getByRole('button', {name: /reset/i})
+    userEvent.click(screen.getByRole('button', {name: /restart/i}))
 
-    // Fix bug in Countdown, it loses original countdown value when editing is cancelled
     screen.getByRole('button', {name: /00:00:09/i})
 
     jest.useRealTimers()

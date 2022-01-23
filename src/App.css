@@ -66,3 +66,16 @@
 .EditActionButton {
   margin-top: 4px;
 }
+
+.Wrapper {
+  position: relative;
+}
+
+.SetCountdownScreenWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: #d6d2c4;
+}

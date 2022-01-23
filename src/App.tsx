@@ -6,63 +6,48 @@ import {Wrapper} from './wrapper'
 import {exhaustive} from './helpers/exhaustive'
 import './App.css'
 import {useHotkeys} from 'react-hotkeys-hook'
-import {INITIAL_MS} from './initial-ms'
 import {addIfClassNames, addMaybeClassName} from './helpers/classnames'
 
-type SetCountdownScreenT = {
-  tag: 'set-countdown'
-  currentMs: number
-}
-
-type CountdownScreenT = {
-  tag: 'countdown'
-  fromMs: number
-  autoStart: boolean
-}
-
-type ScreenT = SetCountdownScreenT | CountdownScreenT
-
 export function App() {
-  const [screen, setScreen] = useState<ScreenT>({tag: 'set-countdown', currentMs: INITIAL_MS})
+  const [showSetCountdownScreen, setShowSetCountdownScreen] = useState(true)
+  const [fromMs, setFromMs] = useState(0)
 
   return (
     <Wrapper>
-      <Screen screen={screen} setScreen={setScreen} />
+      <div className="Wrapper">
+        <CountdownScreen fromMs={fromMs} setShowSetCountdownScreen={setShowSetCountdownScreen} />
+        {showSetCountdownScreen ? (
+          <div className="SetCountdownScreenWrapper">
+            <SetCountdownScreen
+              onHide={() => setShowSetCountdownScreen(false)}
+              fromMs={fromMs}
+              setFromMs={setFromMs}
+            />
+          </div>
+        ) : null}
+      </div>
     </Wrapper>
   )
 }
 
-function Screen({
-  screen,
-  setScreen
-}: {
-  screen: ScreenT
-  setScreen: React.Dispatch<React.SetStateAction<ScreenT>>
-}) {
-  switch (screen.tag) {
-    case 'set-countdown':
-      return <SetCountdownScreen screen={screen} setScreen={setScreen} />
-    case 'countdown':
-      return <CountdownScreen screen={screen} setScreen={setScreen} />
-    default:
-      return exhaustive(screen)
-  }
-}
-
 function CountdownScreen({
-  screen: {fromMs, autoStart},
-  setScreen
+  fromMs,
+  setShowSetCountdownScreen
 }: {
-  screen: CountdownScreenT
-  setScreen: React.Dispatch<React.SetStateAction<ScreenT>>
+  fromMs: number
+  setShowSetCountdownScreen: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [currentMs, setCurrentMs] = useState(fromMs)
-  const [state, setState] = useState<'paused' | 'counting'>(autoStart ? 'counting' : 'paused')
+  const [state, setState] = useState<'paused' | 'counting'>('paused')
   const [toggleState, setToggleState] = useState(false)
 
   useHotkeys('s', () => setToggleState(true))
   useHotkeys('r', () => onReset())
+
+  useEffect(() => {
+    setCurrentMs(fromMs)
+  }, [fromMs])
 
   useEffect(() => {
     return () => {
@@ -90,7 +75,8 @@ function CountdownScreen({
   }, [currentMs, toggleState])
 
   function onEdit() {
-    setScreen({tag: 'set-countdown', currentMs})
+    setState('paused')
+    setShowSetCountdownScreen(true)
   }
 
   function onStart() {
@@ -156,7 +142,7 @@ function CountdownScreen({
             )}
           />
         </button>
-        <button onClick={onReset} aria-label="Reset">
+        <button onClick={onReset} aria-label="Restart">
           <FontAwesomeIcon icon={faRedo} className="ActionButtonIcon" />
         </button>
       </Flex>
@@ -187,17 +173,15 @@ function CountDown({
 }
 
 function SetCountdownScreen({
-  screen,
-  setScreen
+  fromMs,
+  setFromMs,
+  onHide
 }: {
-  screen: SetCountdownScreenT
-  setScreen: React.Dispatch<React.SetStateAction<ScreenT>>
+  fromMs: number
+  setFromMs: React.Dispatch<React.SetStateAction<number>>
+  onHide: () => void
 }) {
-  const {
-    hours: initialHours,
-    minutes: initialMinutes,
-    seconds: initialSeconds
-  } = toClock(INITIAL_MS)
+  const {hours: initialHours, minutes: initialMinutes, seconds: initialSeconds} = toClock(fromMs)
 
   const [hours, setHours] = useState(initialHours)
   const [minutes, setMinutes] = useState(initialMinutes)
@@ -218,7 +202,8 @@ function SetCountdownScreen({
   function onSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     const fromMs = toMs(hours, minutes, seconds)
-    setScreen({tag: 'countdown', fromMs, autoStart: false})
+    setFromMs(fromMs)
+    onHide()
   }
 
   function onReset() {
@@ -228,7 +213,7 @@ function SetCountdownScreen({
   }
 
   function onCancelEditing() {
-    setScreen({tag: 'countdown', fromMs: screen.currentMs, autoStart: true})
+    onHide()
   }
 
   return (

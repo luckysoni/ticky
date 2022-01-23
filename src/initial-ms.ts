@@ -1,1 +1,0 @@
-export const INITIAL_MS = 20 * 1000
