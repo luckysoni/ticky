@@ -83,31 +83,6 @@ function CountdownScreen({
     }
   }, [currentMs, toggleState])
 
-  function onEdit() {
-    setState('paused')
-    setShowSetCountdownScreen(true)
-  }
-
-  function onStart() {
-    if (currentMs > 0) {
-      setScreenReaderMessageType(null)
-      setState('counting')
-    } else {
-      setScreenReaderMessageType('empty-countdown-cannot-be-started')
-    }
-  }
-
-  function onPause() {
-    setState('paused')
-  }
-
-  function onReset() {
-    setCurrentMs(fromMs)
-    if (fromMs > 0) {
-      setState('counting')
-    }
-  }
-
   useEffect(() => {
     if (currentMs === 0) {
       setState('paused')
@@ -133,6 +108,31 @@ function CountdownScreen({
         exhaustive(state)
     }
   }, [currentMs, state])
+
+  function onEdit() {
+    setState('paused')
+    setShowSetCountdownScreen(true)
+  }
+
+  function onStart() {
+    if (currentMs > 0) {
+      setScreenReaderMessageType(null)
+      setState('counting')
+    } else {
+      setScreenReaderMessageType('empty-countdown-cannot-be-started')
+    }
+  }
+
+  function onPause() {
+    setState('paused')
+  }
+
+  function onReset() {
+    setCurrentMs(fromMs)
+    if (fromMs > 0) {
+      setState('counting')
+    }
+  }
 
   const startButtonAriaLabel = currentMs === fromMs ? 'Start' : 'Resume'
 
