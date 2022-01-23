@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {App, pad, toClock} from './App'
+import {App, msToHumanReadable, toMs} from './App'
 import {exhaustive} from './helpers/exhaustive'
 
 describe('App', () => {
@@ -127,24 +127,20 @@ function getCountdownWithValue(
     | {tag: 'ms'; ms: number}
     | {tag: 'clock'; hours: number; minutes: number; seconds: number}
 ) {
-  const {hours, minutes, seconds} = (() => {
+  const ms = (() => {
     switch (config.tag) {
-      case 'clock': {
-        const {hours, minutes, seconds} = config
-        return {hours, minutes, seconds}
-      }
-      case 'seconds': {
-        return toClock(config.seconds * 1000)
-      }
-      case 'ms': {
-        return toClock(config.ms)
-      }
+      case 'clock':
+        return toMs(config.hours, config.minutes, config.seconds)
+      case 'seconds':
+        return config.seconds * 1000
+      case 'ms':
+        return config.ms
       default:
         return exhaustive(config)
     }
   })()
 
-  return screen.getByRole('button', {name: `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`})
+  return screen.getByRole('button', {name: msToHumanReadable(ms)})
 }
 
 function advanceTimeBySeconds(seconds: number) {

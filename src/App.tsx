@@ -264,14 +264,14 @@ function SetCountdownScreen({
   )
 }
 
-function toMs(hours: number, minutes: number, seconds: number) {
+export function toMs(hours: number, minutes: number, seconds: number) {
   const hMs = hours * 60 * 60 * 1000
   const mMs = minutes * 60 * 1000
   const sMs = seconds * 1000
   return hMs + mMs + sMs
 }
 
-function msToHumanReadable(ms: number) {
+export function msToHumanReadable(ms: number) {
   const {hours, minutes, seconds} = toClock(ms)
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
 }
