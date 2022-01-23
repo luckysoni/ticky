@@ -4,6 +4,13 @@
   height: 100vh;
 }
 
+.AppTitle {
+  font-size: 16px;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+}
+
 .AppIcon {
   margin-right: 4px;
   width: 18px;
@@ -15,7 +22,7 @@
   /* make app dragable */
   -webkit-app-region: drag;
   background-color: #d6d2c4;
-  padding: 8px;
+  padding: 8px 4px;
   display: flex;
   align-items: center;
   justify-content: space-between;

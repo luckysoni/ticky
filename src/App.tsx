@@ -7,6 +7,7 @@ import {exhaustive} from './helpers/exhaustive'
 import './App.css'
 import {useHotkeys} from 'react-hotkeys-hook'
 import {addIfClassNames, addMaybeClassName} from './helpers/classnames'
+import {mkHtmlAttribute} from './helpers/dom'
 
 export function App() {
   const [showSetCountdownScreen, setShowSetCountdownScreen] = useState(true)
@@ -14,33 +15,40 @@ export function App() {
 
   return (
     <Wrapper>
-      <div className="Wrapper">
-        <CountdownScreen fromMs={fromMs} setShowSetCountdownScreen={setShowSetCountdownScreen} />
-        {showSetCountdownScreen ? (
-          <div className="SetCountdownScreenWrapper">
-            <SetCountdownScreen
-              onHide={() => setShowSetCountdownScreen(false)}
-              fromMs={fromMs}
-              setFromMs={setFromMs}
-            />
-          </div>
-        ) : null}
-      </div>
+      <CountdownScreen
+        fromMs={fromMs}
+        setShowSetCountdownScreen={setShowSetCountdownScreen}
+        showSetCountdownScreen={showSetCountdownScreen}
+      />
+      {showSetCountdownScreen ? (
+        <SetCountdownScreen
+          onHide={() => setShowSetCountdownScreen(false)}
+          fromMs={fromMs}
+          setFromMs={setFromMs}
+        />
+      ) : null}
     </Wrapper>
   )
 }
 
+type ScreenReaderMessagesT = 'empty-countdown-cannot-be-started' | null
+
 function CountdownScreen({
   fromMs,
+  showSetCountdownScreen,
   setShowSetCountdownScreen
 }: {
   fromMs: number
+  showSetCountdownScreen: boolean
   setShowSetCountdownScreen: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [currentMs, setCurrentMs] = useState(fromMs)
   const [state, setState] = useState<'paused' | 'counting'>('paused')
   const [toggleState, setToggleState] = useState(false)
+  const [screenReaderMessageType, setScreenReaderMessageType] =
+    useState<ScreenReaderMessagesT>(null)
+  const isHidden = showSetCountdownScreen
 
   useHotkeys('s', () => setToggleState(true))
   useHotkeys('r', () => onReset())
@@ -82,7 +90,10 @@ function CountdownScreen({
 
   function onStart() {
     if (currentMs > 0) {
+      setScreenReaderMessageType(null)
       setState('counting')
+    } else {
+      setScreenReaderMessageType('empty-countdown-cannot-be-started')
     }
   }
 
@@ -109,7 +120,7 @@ function CountdownScreen({
         if (currentMs > 0 && (intervalRef.current === null || intervalRef.current === undefined)) {
           intervalRef.current = setInterval(() => {
             setCurrentMs(prevMs => prevMs - 1000)
-          }, 1000)
+          }, 999)
         }
         break
       case 'paused':
@@ -123,41 +134,76 @@ function CountdownScreen({
     }
   }, [currentMs, state])
 
+  const startButtonAriaLabel = currentMs === fromMs ? 'Start' : 'Resume'
+
   return (
-    <Flex justifyContent="space-between" alignItems="center">
-      <CountDown remainingMs={currentMs} onEdit={onEdit} isPaused={state === 'paused'} />
-      <Flex flexDirection="column" className="ButtonGroup">
-        <button onClick={onStart} aria-label="Start">
-          <FontAwesomeIcon
-            icon={faPlay}
-            className={addMaybeClassName(
-              'ActionButtonIcon',
-              state === 'counting' ? 'ActiveActionButtonIcon' : null
-            )}
-          />
-        </button>
-        <button onClick={onPause} aria-label="Pause">
-          <FontAwesomeIcon
-            icon={faPause}
-            className={addMaybeClassName(
-              'ActionButtonIcon',
-              state === 'paused' ? 'ActiveActionButtonIcon' : null
-            )}
-          />
-        </button>
-        <button onClick={onReset} aria-label="Restart">
-          <FontAwesomeIcon icon={faRedo} className="ActionButtonIcon" />
-        </button>
+    <div style={{display: isHidden ? 'none' : 'block'}}>
+      <ScreenReaderMessages screenReaderMessageType={screenReaderMessageType} />
+      <Flex justifyContent="space-between" alignItems="center">
+        <CountDown
+          remainingMs={currentMs}
+          onEdit={onEdit}
+          isPaused={state === 'paused'}
+          fromMs={fromMs}
+        />
+        <Flex flexDirection="column" className="ButtonGroup" role="button-group">
+          <button onClick={onStart} aria-label={startButtonAriaLabel}>
+            <FontAwesomeIcon
+              icon={faPlay}
+              className={addMaybeClassName(
+                'ActionButtonIcon',
+                state === 'counting' ? 'ActiveActionButtonIcon' : null
+              )}
+            />
+          </button>
+          <button onClick={onPause} aria-label="Pause">
+            <FontAwesomeIcon
+              icon={faPause}
+              className={addMaybeClassName(
+                'ActionButtonIcon',
+                state === 'paused' ? 'ActiveActionButtonIcon' : null
+              )}
+            />
+          </button>
+          <button onClick={onReset} aria-label="Restart">
+            <FontAwesomeIcon icon={faRedo} className="ActionButtonIcon" />
+          </button>
+        </Flex>
       </Flex>
-    </Flex>
+    </div>
   )
 }
 
+function ScreenReaderMessages({
+  screenReaderMessageType
+}: {
+  screenReaderMessageType: ScreenReaderMessagesT
+}) {
+  return (
+    <span role="alert" className="SrOnly">
+      {message(screenReaderMessageType)}
+    </span>
+  )
+}
+
+function message(screenReaderMessageType: ScreenReaderMessagesT) {
+  switch (screenReaderMessageType) {
+    case null:
+      return null
+    case 'empty-countdown-cannot-be-started':
+      return 'Set a countdown before it can be started'
+    default:
+      return exhaustive(screenReaderMessageType)
+  }
+}
+
 function CountDown({
+  fromMs,
   remainingMs,
   isPaused,
   onEdit
 }: {
+  fromMs: number
   remainingMs: number
   isPaused: boolean
   onEdit: () => void
@@ -168,10 +214,33 @@ function CountDown({
     [isPaused, 'isPaused']
   ])
 
+  /*
+    Annouce the timer if:
+    1. We just started. This lets the user know the starting position.
+    2. Every 3 seconds. This is to ensure there is enough time for the screen reader to read.
+    3. The countdown ended
+    4. Countdown is paused
+   */
+
+  const shouldAnnounce =
+    (remainingMs / 1000) % 3 === 0 || remainingMs === fromMs || remainingMs === 0 || isPaused
+
+  const ariaLiveAttr = mkHtmlAttribute('aria-live', shouldAnnounce ? 'assertive' : 'off')
+  const roleAttr = mkHtmlAttribute('role', shouldAnnounce ? 'alert' : null)
+
   return (
-    <button className={addMaybeClassName('Timer', classNames)} onClick={onEdit}>
-      {msToHumanReadable(remainingMs)}
-    </button>
+    <>
+      <span {...roleAttr} {...ariaLiveAttr} className="SrOnly">
+        {toHumanHearable(remainingMs, isPaused)}
+      </span>
+      <button
+        className={addMaybeClassName('Timer', classNames)}
+        onClick={onEdit}
+        aria-label="Edit countdown"
+      >
+        {msToHumanReadable(remainingMs)}
+      </button>
+    </>
   )
 }
 
@@ -215,51 +284,56 @@ function SetCountdownScreen({
     setSeconds(initialSeconds)
   }
 
-  function onCancelEditing() {
+  function onCancel() {
     onHide()
   }
 
   return (
-    <form onSubmit={onSubmit} onReset={onReset}>
-      <Flex alignItems="flex-end" justifyContent="space-around">
-        <Flex flexDirection="column">
-          <label htmlFor="hours">Hours</label>
-          <input id="hours" type="number" min="0" max="23" onChange={onChangeHours} value={hours} />
-          <button type="reset" className="EditActionButton">
-            Reset
-          </button>
-        </Flex>
-
-        <Flex flexDirection="column">
-          <label htmlFor="minutes">Minutes</label>
-          <input
-            id="minutes"
-            type="number"
-            min="0"
-            max="59"
-            value={minutes}
-            onChange={onChangeMinutes}
-          />
-          <button type="button" onClick={onCancelEditing} className="EditActionButton">
-            Cancel
-          </button>
-        </Flex>
-
-        <Flex flexDirection="column">
-          <label htmlFor="seconds">Seconds</label>
-          <input
-            id="seconds"
-            type="number"
-            min="0"
-            max="59"
-            value={seconds}
-            onChange={onChangeSeconds}
-          />
-          <button type="submit" className="EditActionButton">
-            OK
-          </button>
-        </Flex>
+    <form onSubmit={onSubmit} onReset={onReset} className="EditCountdownForm">
+      <Flex flexDirection="column">
+        <label htmlFor="hours">Hours</label>
+        <input
+          id="hours"
+          type="number"
+          min="0"
+          max="23"
+          onChange={onChangeHours}
+          value={hours}
+          autoFocus
+        />
       </Flex>
+
+      <Flex flexDirection="column">
+        <label htmlFor="minutes">Minutes</label>
+        <input
+          id="minutes"
+          type="number"
+          min="0"
+          max="59"
+          value={minutes}
+          onChange={onChangeMinutes}
+        />
+      </Flex>
+
+      <Flex flexDirection="column">
+        <label htmlFor="seconds">Seconds</label>
+        <input
+          id="seconds"
+          type="number"
+          min="0"
+          max="59"
+          value={seconds}
+          onChange={onChangeSeconds}
+        />
+      </Flex>
+
+      <button type="submit">Ok</button>
+
+      <button type="button" onClick={onCancel}>
+        Cancel
+      </button>
+
+      <button type="reset">Reset</button>
     </form>
   )
 }
@@ -274,6 +348,30 @@ export function toMs(hours: number, minutes: number, seconds: number) {
 export function msToHumanReadable(ms: number) {
   const {hours, minutes, seconds} = toClock(ms)
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+}
+
+export function toHumanHearable(ms: number, isPaused: boolean) {
+  const {hours, minutes, seconds} = toClock(ms)
+
+  if (hours === 0 && minutes === 0 && seconds === 0) {
+    return 'Countdown ended'
+  }
+
+  if (isPaused) {
+    return 'Countdown paused'
+  }
+
+  const messages = [
+    hours !== 0 ? `${hours} ${plural('hour', hours)}` : null,
+    minutes !== 0 ? `${minutes} ${plural('minute', minutes)}` : null,
+    seconds !== 0 ? `${seconds} ${plural('second', seconds)}` : null
+  ]
+
+  return messages.filter(msg => msg !== null).join(' ')
+}
+
+function plural(word: string, num: number) {
+  return num > 1 ? `${word}s` : word
 }
 
 export function toClock(ms: number) {

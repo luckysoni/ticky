@@ -140,7 +140,7 @@ function getCountdownWithValue(
     }
   })()
 
-  return screen.getByRole('button', {name: msToHumanReadable(ms)})
+  return screen.getByText(msToHumanReadable(ms))
 }
 
 function advanceTimeBySeconds(seconds: number) {

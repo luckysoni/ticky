@@ -50,6 +50,24 @@
   color: #007a78;
 }
 
+.EditCountdownForm {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
+  padding: 0 4px;
+}
+
+.SrOnly {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+/* Animations */
 @keyframes blink {
   0%,
   49% {
@@ -63,19 +81,9 @@
   }
 }
 
-.EditActionButton {
-  margin-top: 4px;
-}
-
-.Wrapper {
-  position: relative;
-}
-
-.SetCountdownScreenWrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: #d6d2c4;
+/* Accessibility */
+@media screen and (prefers-reduced-motion: reduce) {
+  .AlmostGone {
+    animation: none;
+  }
 }
