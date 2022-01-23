@@ -44,6 +44,7 @@ function CountdownScreen({
 
   useHotkeys('s', () => setToggleState(true))
   useHotkeys('r', () => onReset())
+  useHotkeys('e', () => onEdit())
 
   useEffect(() => {
     setCurrentMs(fromMs)
