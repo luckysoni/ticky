@@ -12,16 +12,21 @@ import {mkHtmlAttribute} from './helpers/dom'
 export function App() {
   const [showSetCountdownScreen, setShowSetCountdownScreen] = useState(true)
   const [fromMs, setFromMs] = useState(0)
+  const [resetToMs, setResetToMs] = useState(0)
 
   return (
     <Wrapper>
       <CountdownScreen
         fromMs={fromMs}
+        setFromMs={setFromMs}
+        resetToMs={resetToMs}
         setShowSetCountdownScreen={setShowSetCountdownScreen}
         showSetCountdownScreen={showSetCountdownScreen}
       />
       {showSetCountdownScreen ? (
         <SetCountdownScreen
+          resetToMs={resetToMs}
+          setResetToMs={setResetToMs}
           onHide={() => setShowSetCountdownScreen(false)}
           fromMs={fromMs}
           setFromMs={setFromMs}
@@ -38,15 +43,18 @@ type ScreenReaderMessagesT =
 
 function CountdownScreen({
   fromMs,
+  setFromMs,
+  resetToMs,
   showSetCountdownScreen,
   setShowSetCountdownScreen
 }: {
   fromMs: number
+  setFromMs: React.Dispatch<React.SetStateAction<number>>
+  resetToMs: number
   showSetCountdownScreen: boolean
   setShowSetCountdownScreen: React.Dispatch<React.SetStateAction<boolean>>
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const [currentMs, setCurrentMs] = useState(fromMs)
   const [state, setState] = useState<'paused' | 'counting'>('paused')
   const [toggleState, setToggleState] = useState(false)
   const [screenReaderMessageType, setScreenReaderMessageType] =
@@ -58,9 +66,10 @@ function CountdownScreen({
   useHotkeys('e', () => onEdit())
 
   useEffect(() => {
-    setCurrentMs(fromMs)
-    setScreenReaderMessageType({tag: 'new-countdown-set', ms: fromMs})
-  }, [fromMs])
+    if (fromMs === resetToMs) {
+      setScreenReaderMessageType({tag: 'new-countdown-set', ms: resetToMs})
+    }
+  }, [resetToMs, fromMs])
 
   useEffect(() => {
     return () => {
@@ -78,27 +87,27 @@ function CountdownScreen({
           case 'counting':
             return 'paused'
           case 'paused':
-            return currentMs > 0 ? 'counting' : 'paused'
+            return fromMs > 0 ? 'counting' : 'paused'
           default:
             return exhaustive(prevState)
         }
       })
       setToggleState(false)
     }
-  }, [currentMs, toggleState])
+  }, [fromMs, toggleState])
 
   useEffect(() => {
-    if (currentMs === 0) {
+    if (fromMs === 0) {
       setState('paused')
     }
-  }, [currentMs])
+  }, [fromMs])
 
   useEffect(() => {
     switch (state) {
       case 'counting':
-        if (currentMs > 0 && (intervalRef.current === null || intervalRef.current === undefined)) {
+        if (fromMs > 0 && (intervalRef.current === null || intervalRef.current === undefined)) {
           intervalRef.current = setInterval(() => {
-            setCurrentMs(prevMs => prevMs - 1000)
+            setFromMs(prevMs => prevMs - 1000)
           }, 999)
         }
         break
@@ -111,7 +120,7 @@ function CountdownScreen({
       default:
         exhaustive(state)
     }
-  }, [currentMs, state])
+  }, [fromMs, setFromMs, state])
 
   function onEdit() {
     setState('paused')
@@ -119,7 +128,7 @@ function CountdownScreen({
   }
 
   function onStart() {
-    if (currentMs > 0) {
+    if (fromMs > 0) {
       setScreenReaderMessageType(null)
       setState('counting')
     } else {
@@ -132,20 +141,20 @@ function CountdownScreen({
   }
 
   function onReset() {
-    setCurrentMs(fromMs)
+    setFromMs(resetToMs)
     if (fromMs > 0) {
       setState('counting')
     }
   }
 
-  const startButtonAriaLabel = currentMs === fromMs ? 'Start' : 'Resume'
+  const startButtonAriaLabel = resetToMs === fromMs ? 'Start' : 'Resume'
 
   return (
     <div style={{display: isHidden ? 'none' : 'block'}}>
       <ScreenReaderMessages screenReaderMessageType={screenReaderMessageType} />
       <Flex justifyContent="space-between" alignItems="center">
         <CountDown
-          remainingMs={currentMs}
+          remainingMs={fromMs}
           onEdit={onEdit}
           isPaused={state === 'paused'}
           fromMs={fromMs}
@@ -257,13 +266,17 @@ function CountDown({
 function SetCountdownScreen({
   fromMs,
   setFromMs,
+  resetToMs,
+  setResetToMs,
   onHide
 }: {
   fromMs: number
   setFromMs: React.Dispatch<React.SetStateAction<number>>
+  resetToMs: number
+  setResetToMs: React.Dispatch<React.SetStateAction<number>>
   onHide: () => void
 }) {
-  const {hours: initialHours, minutes: initialMinutes, seconds: initialSeconds} = toClock(fromMs)
+  const {hours: initialHours, minutes: initialMinutes, seconds: initialSeconds} = toClock(resetToMs)
 
   const [hours, setHours] = useState(initialHours)
   const [minutes, setMinutes] = useState(initialMinutes)
@@ -284,6 +297,7 @@ function SetCountdownScreen({
   function onSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     const fromMs = toMs(hours, minutes, seconds)
+    setResetToMs(fromMs)
     setFromMs(fromMs)
     onHide()
   }
