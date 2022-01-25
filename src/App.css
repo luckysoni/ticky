@@ -30,6 +30,7 @@
   border: 1px solid #b1aea2;
   margin-bottom: 2px;
   margin-right: 3px;
+  padding: 1px;
 }
 
 .ButtonGroup button:hover {

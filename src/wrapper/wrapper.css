@@ -5,17 +5,16 @@
 }
 
 .AppTitle {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: normal;
   margin: 0;
   padding: 0;
 }
 
 .AppIcon {
-  margin-right: 4px;
-  width: 18px;
-  height: 18px;
+  margin-right: 2px;
   color: #007a78;
+  line-height: 1;
 }
 
 .DragAnchor {

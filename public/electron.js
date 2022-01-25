@@ -7,8 +7,8 @@ const os = require('os')
 // Create the native browser window.
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 200,
-    height: 105,
+    width: 202,
+    height: 110,
     frame: false,
     resizable: false,
     x: -50,

@@ -1,6 +1,9 @@
 import {SyntheticEvent, useEffect, useRef, useState} from 'react'
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faPlay, faPause, faRedo} from '@fortawesome/free-solid-svg-icons'
+import { Icon } from 'react-icons-kit'
+import {iosPause as pauseIcon} from 'react-icons-kit/ionicons/iosPause'
+import {iosPlay as playIcon} from 'react-icons-kit/ionicons/iosPlay'
+import {androidRefresh as resetIcon} from 'react-icons-kit/ionicons/androidRefresh'
+import {iosInfinite as arrowLoop} from 'react-icons-kit/ionicons/iosInfinite'
 import {Flex} from './flex'
 import {Wrapper} from './wrapper'
 import {exhaustive} from './helpers/exhaustive'
@@ -56,6 +59,7 @@ function CountdownScreen({
 }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const [state, setState] = useState<'paused' | 'counting'>('paused')
+  const [shouldLoop, setShouldLoop] = useState(false)
   const [toggleState, setToggleState] = useState(false)
   const [screenReaderMessageType, setScreenReaderMessageType] =
     useState<ScreenReaderMessagesT>(null)
@@ -98,9 +102,13 @@ function CountdownScreen({
 
   useEffect(() => {
     if (fromMs === 0) {
-      setState('paused')
+      if (shouldLoop) {
+        setFromMs(resetToMs)
+      } else {
+        setState('paused')
+      }
     }
-  }, [fromMs])
+  }, [fromMs, resetToMs, setFromMs, shouldLoop])
 
   useEffect(() => {
     switch (state) {
@@ -147,7 +155,8 @@ function CountdownScreen({
     }
   }
 
-  const startButtonAriaLabel = resetToMs === fromMs ? 'Start' : 'Resume'
+  const stateButtonAriaLabel =
+    state === 'counting' ? (resetToMs === fromMs ? 'Start' : 'Resume') : 'Pause'
 
   return (
     <div style={{display: isHidden ? 'none' : 'block'}}>
@@ -160,26 +169,26 @@ function CountdownScreen({
           fromMs={fromMs}
         />
         <Flex flexDirection="column" className="ButtonGroup" role="button-group">
-          <button onClick={onStart} aria-label={startButtonAriaLabel}>
-            <FontAwesomeIcon
-              icon={faPlay}
-              className={addMaybeClassName(
-                'ActionButtonIcon',
-                state === 'counting' ? 'ActiveActionButtonIcon' : null
-              )}
+          <button
+            onClick={state === 'paused' ? onStart : onPause}
+            aria-label={stateButtonAriaLabel}
+          >
+            <Icon
+              icon={state === 'paused' ? playIcon : pauseIcon}
+              className="ActionButtonIcon"
             />
           </button>
-          <button onClick={onPause} aria-label="Pause">
-            <FontAwesomeIcon
-              icon={faPause}
+          <button onClick={() => setShouldLoop(prevState => !prevState)} aria-label="Pause">
+            <Icon
+              icon={arrowLoop}
               className={addMaybeClassName(
                 'ActionButtonIcon',
-                state === 'paused' ? 'ActiveActionButtonIcon' : null
+                shouldLoop ? 'ActiveActionButtonIcon' : null
               )}
             />
           </button>
           <button onClick={onReset} aria-label="Restart">
-            <FontAwesomeIcon icon={faRedo} className="ActionButtonIcon" />
+            <Icon icon={resetIcon} className="ActionButtonIcon" />
           </button>
         </Flex>
       </Flex>
