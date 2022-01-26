@@ -1,4 +1,3 @@
-import {iosClockOutline} from 'react-icons-kit/ionicons/iosClockOutline'
 import {iosClock} from 'react-icons-kit/ionicons/iosClock'
 import {Icon} from 'react-icons-kit'
 import {arrowMove} from 'react-icons-kit/ionicons/arrowMove'
