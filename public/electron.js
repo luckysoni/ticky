@@ -96,7 +96,7 @@ app.on('window-all-closed', function () {
 // If your app has no need to navigate or only needs to navigate to known pages,
 // it is a good idea to limit navigation outright to that known scope,
 // disallowing any other kinds of navigation.
-const allowedNavigationDestinations = 'https://my-electron-app.com'
+const allowedNavigationDestinations = []
 app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl)
