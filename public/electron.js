@@ -18,9 +18,14 @@ function createWindow() {
     webPreferences: {
       // security
       sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      experimentalFeatures: false,
       // Set the path of an additional "preload" script that can be used to
       // communicate between node-land and browser-land.
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(app.getAppPath(), 'preload.js')
     }
   })
 
@@ -95,19 +100,18 @@ app.on('window-all-closed', function () {
   }
 })
 
-// If your app has no need to navigate or only needs to navigate to known pages,
-// it is a good idea to limit navigation outright to that known scope,
-// disallowing any other kinds of navigation.
-const allowedNavigationDestinations = []
 app.on('web-contents-created', (event, contents) => {
+  // https://www.electronjs.org/docs/latest/tutorial/security#13-disable-or-limit-navigation
   contents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl)
+    // Since our app does not navigate we will prevent the action
+    console.log('Preventing navigation')
+    event.preventDefault()
+  })
 
-    if (!allowedNavigationDestinations.includes(parsedUrl.origin)) {
-      event.preventDefault()
-    }
+  // https://www.electronjs.org/docs/latest/tutorial/security#12-verify-webview-options-before-creation
+  contents.on('will-attach-webview', (event, webPreferences, params) => {
+    // since our app does not make use of Webview, we will prevent its creation
+    console.log('Preventing webview creation')
+    event.preventDefault()
   })
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
