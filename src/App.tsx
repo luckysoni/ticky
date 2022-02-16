@@ -1,5 +1,5 @@
 import {SyntheticEvent, useEffect, useRef, useState} from 'react'
-import { Icon } from 'react-icons-kit'
+import {Icon} from 'react-icons-kit'
 // import {iosPause as pauseIcon} from 'react-icons-kit/ionicons/iosPause'
 import {ic_pause_twotone as pauseIcon} from 'react-icons-kit/md/ic_pause_twotone'
 // import {iosPlay as playIcon} from 'react-icons-kit/ionicons/iosPlay'
@@ -158,9 +158,6 @@ function CountdownScreen({
     }
   }
 
-  const stateButtonAriaLabel =
-    state === 'counting' ? (resetToMs === fromMs ? 'Start' : 'Resume') : 'Pause'
-
   return (
     <div style={{display: isHidden ? 'none' : 'block'}}>
       <ScreenReaderMessages screenReaderMessageType={screenReaderMessageType} />
@@ -174,14 +171,16 @@ function CountdownScreen({
         <Flex flexDirection="column" className="ButtonGroup" role="button-group">
           <button
             onClick={state === 'paused' ? onStart : onPause}
-            aria-label={stateButtonAriaLabel}
+            aria-label="Start"
+            aria-pressed={state === 'counting'}
           >
-            <Icon
-              icon={state === 'paused' ? playIcon : pauseIcon}
-              className="ActionButtonIcon"
-            />
+            <Icon icon={state === 'paused' ? playIcon : pauseIcon} className="ActionButtonIcon" />
           </button>
-          <button onClick={() => setShouldLoop(prevState => !prevState)} aria-label="Pause">
+          <button
+            onClick={() => setShouldLoop(prevState => !prevState)}
+            aria-label="Loop Countdown"
+            aria-pressed={shouldLoop}
+          >
             <Icon
               icon={arrowLoop}
               className={addMaybeClassName(

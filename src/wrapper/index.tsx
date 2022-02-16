@@ -10,9 +10,10 @@ export function Wrapper({children}: {children: ReactNode}) {
     <div className="App">
       <div className="DragAnchor">
         <Flex alignItems="center">
-          <Icon icon={clockIcon} className="AppIcon" /> <h1 className="AppTitle">Time Keeper</h1>
+          <Icon icon={clockIcon} className="AppIcon" aria-hidden="true" />
+          <h1 className="AppTitle">Time Keeper</h1>
         </Flex>
-        <Icon icon={moveIcon} />
+        <Icon icon={moveIcon} title="Move window" />
       </div>
       {children}
     </div>
