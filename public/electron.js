@@ -15,9 +15,11 @@ function createWindow() {
     y: 100,
     alwaysOnTop: true,
 
-    // Set the path of an additional "preload" script that can be used to
-    // communicate between node-land and browser-land.
     webPreferences: {
+      // security
+      sandbox: true,
+      // Set the path of an additional "preload" script that can be used to
+      // communicate between node-land and browser-land.
       preload: path.join(__dirname, 'preload.js')
     }
   })
@@ -62,7 +64,7 @@ app.whenReady().then(async () => {
   if (!app.isPackaged) {
     const extensions = [
       // React dev tools
-      '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.22.0_0',
+      '/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.23.0_0',
       // Testing playground
       '/.config/google-chrome/Default/Extensions/hejbmebodbijjdhflfknehhcgaklhano/1.16.0_0/'
     ]
