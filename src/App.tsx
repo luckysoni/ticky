@@ -1,19 +1,16 @@
 import {SyntheticEvent, useEffect, useRef, useState} from 'react'
+import {useHotkeys} from 'react-hotkeys-hook'
 import {Icon} from 'react-icons-kit'
-// import {iosPause as pauseIcon} from 'react-icons-kit/ionicons/iosPause'
 import {ic_pause_twotone as pauseIcon} from 'react-icons-kit/md/ic_pause_twotone'
-// import {iosPlay as playIcon} from 'react-icons-kit/ionicons/iosPlay'
-// import {play3 as playIcon} from 'react-icons-kit/icomoon/play3'
 import {ic_play_arrow_twotone as playIcon} from 'react-icons-kit/md/ic_play_arrow_twotone'
 import {androidRefresh as resetIcon} from 'react-icons-kit/ionicons/androidRefresh'
 import {iosInfinite as arrowLoop} from 'react-icons-kit/ionicons/iosInfinite'
 import {Flex} from './flex'
 import {Wrapper} from './wrapper'
 import {exhaustive} from './helpers/exhaustive'
-import './App.css'
-import {useHotkeys} from 'react-hotkeys-hook'
 import {addIfClassNames, addMaybeClassName} from './helpers/classnames'
 import {mkHtmlAttribute} from './helpers/dom'
+import './App.css'
 
 export function App() {
   const [showSetCountdownScreen, setShowSetCountdownScreen] = useState(true)
