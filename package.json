@@ -2,7 +2,7 @@
   "name": "ticky",
   "version": "0.1.0",
   "private": true,
-  "author": "Lucky Soni",
+  "author": "Lucky Soni <lp.soni@yahoo.co.in>",
   "description": "Never lose track of time",
   "homepage": "./",
   "main": "./public/electron.js",
@@ -47,8 +47,8 @@
     ]
   },
   "build": {
-    "appId": "com.electron.timetracker",
-    "productName": "Time Tracker",
+    "appId": "com.electron.ticky",
+    "productName": "Ticky",
     "files": [
       "build/**/*",
       "node_modules/**/*"
